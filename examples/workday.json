@@ -1,0 +1,40 @@
+{
+  "recorder": "CH-01",
+  "setting": "reclaimed-water",
+  "first": {"ticket": "A", "request": "early-shift", "increments": [3, 4]},
+  "second": {"ticket": "B", "request": "late-shift", "increments": [11]},
+  "oracles": {
+    "withdraw": {
+      "case_id": "c5.recovered_withdrawal",
+      "oracle": "手算 3+4=7，第二次清零为 11。撤 A 后正式区间为 (0,2]，合计 18。两次清零前读点分别是 2 和 4。",
+      "expected": {
+        "initial_capture": "pending", "physical_sequences": [1, 2],
+        "early_issue": "predecessor_pending", "early_receive": "not_issued",
+        "first_disposition": "withdrawn", "first_liters": null,
+        "after": 0, "through": 2, "liters": 18,
+        "lines": [[1, "CH-01", "cut/A", 2, 7], [2, "CH-01", "cut/B", 4, 11]]
+      },
+      "downstream_expected": {
+        "first": "withdrawn", "liters": 18,
+        "lines": [[1, "CH-01", "cut/A", 2, 7], [2, "CH-01", "cut/B", 4, 11]],
+        "receipt": "receipt/B", "same_issued": true
+      }
+    },
+    "sign": {
+      "case_id": "c7",
+      "oracle": "手算 A 先签 3+4=7，占第一段。B 的正式区间为 (1,2]，保留第二段 11 L 和清零前读点 4。",
+      "expected": {
+        "initial_capture": "pending", "physical_sequences": [1, 2],
+        "early_issue": "predecessor_pending", "early_receive": "not_issued",
+        "first_disposition": "already_signed", "first_liters": 7,
+        "after": 1, "through": 2, "liters": 11,
+        "lines": [[2, "CH-01", "cut/B", 4, 11]]
+      },
+      "downstream_expected": {
+        "first": "same", "liters": 11,
+        "lines": [[2, "CH-01", "cut/B", 4, 11]],
+        "receipt": "receipt/B", "same_issued": true
+      }
+    }
+  }
+}
