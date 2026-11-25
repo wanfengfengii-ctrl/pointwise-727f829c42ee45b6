@@ -15,7 +15,8 @@ from capture.store import StationError as StationError, open_business
 from ledger.issue import issue
 from ledger.postings import install_postings
 from ledger.receipts import install_reports, receive
-from source.counter import record, snapshot_reading
+from source.counter import pulse, record, snapshot_reading
+from source.full_scale import enable_full_scale
 from source.register import configure
 from source.store import open_source
 
@@ -47,8 +48,14 @@ class Station:
     def configure(self, recorder, setting):
         return configure(self._connected_source(), recorder, setting)
 
+    def enable_full_scale(self, recorder, capacity):
+        return enable_full_scale(self._connected_source(), recorder, capacity)
+
     def record(self, recorder, liters=None):
         return record(self._connected_source(), recorder, liters)
+
+    def pulse(self, recorder):
+        return pulse(self._connected_source(), recorder)
 
     def reading(self, recorder):
         return snapshot_reading(self._connected_source(), recorder)

@@ -1,5 +1,6 @@
 from audit.consistency import AuditMismatch
 from boundaries.tickets import read_ticket
+from capture.segments import read_boundary_segment
 from ledger.postings import read_postings, segment_owners
 from ledger.receipts import report_before
 
@@ -12,7 +13,11 @@ def verify_coverage(db, report, lines):
     if report.through <= report.after or len(lines) != report.through - report.after:
         raise AuditMismatch('coverage', f'{report.ticket}: length')
     ticket = read_ticket(db, report.ticket)
-    if ticket.recorder != report.recorder or lines[-1].operation != ticket.operation:
+    if ticket.recorder != report.recorder:
+        raise AuditMismatch('coverage', f'{report.ticket}: end')
+    boundary = read_boundary_segment(db, ticket.operation)
+    if boundary is None or (boundary.sequence, boundary.recorder, boundary.operation, boundary.point, boundary.liters) \
+            != (lines[-1].sequence, lines[-1].recorder, lines[-1].operation, lines[-1].point, lines[-1].liters):
         raise AuditMismatch('coverage', f'{report.ticket}: end')
     for expected, line in enumerate(lines, report.after + 1):
         if line.sequence != expected or line.recorder != report.recorder:

@@ -12,11 +12,16 @@ class DeviceConfig:
 def read_registration(db, recorder):
     require_text(recorder, 'recorder')
     row = db.execute(
-        'SELECT recorder, setting FROM recorder WHERE recorder = ?', (recorder,)
+        'SELECT recorder, setting, capacity FROM recorder WHERE recorder = ?', (recorder,)
     ).fetchone()
     if row is None:
         raise StationError('unknown_recorder', recorder)
     return DeviceConfig(row['recorder'], row['setting'])
+
+
+def read_capacity(db, recorder):
+    read_registration(db, recorder)
+    return db.execute('SELECT capacity FROM recorder WHERE recorder = ?', (recorder,)).fetchone()[0]
 
 
 def configure(db, recorder, setting):
@@ -25,7 +30,8 @@ def configure(db, recorder, setting):
         row = db.execute('SELECT recorder, setting FROM recorder WHERE singleton = 1').fetchone()
         if row is None:
             db.execute(
-                'INSERT INTO recorder VALUES (1, ?, ?, ?, 0, 0)',
+                'INSERT INTO recorder (singleton, recorder, setting, liters, point, cut_sequence) '
+                'VALUES (1, ?, ?, ?, 0, 0)',
                 (config.recorder, config.setting, '0'),
             )
             return config

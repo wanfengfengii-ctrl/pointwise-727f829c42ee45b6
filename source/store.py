@@ -27,7 +27,8 @@ def install_source_schema(db):
             setting TEXT NOT NULL,
             liters TEXT NOT NULL,
             point INTEGER NOT NULL CHECK (point >= 0),
-            cut_sequence INTEGER NOT NULL CHECK (cut_sequence >= 0)
+            cut_sequence INTEGER NOT NULL CHECK (cut_sequence >= 0),
+            capacity INTEGER NOT NULL DEFAULT 0 CHECK (capacity >= 0)
         );
         CREATE TABLE IF NOT EXISTS cut_outcomes (
             operation TEXT PRIMARY KEY,
@@ -35,7 +36,25 @@ def install_source_schema(db):
             point INTEGER NOT NULL UNIQUE,
             sequence INTEGER NOT NULL UNIQUE CHECK (sequence > 0)
         );
+        CREATE TABLE IF NOT EXISTS full_scale_outcomes (
+            operation TEXT PRIMARY KEY,
+            recorder TEXT NOT NULL REFERENCES recorder(recorder),
+            point INTEGER NOT NULL UNIQUE,
+            sequence INTEGER NOT NULL UNIQUE CHECK (sequence > 0),
+            liters TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS full_scale_bindings (
+            boundary_operation TEXT PRIMARY KEY,
+            recorder TEXT NOT NULL,
+            original_operation TEXT NOT NULL UNIQUE
+                REFERENCES full_scale_outcomes(operation),
+            point INTEGER NOT NULL,
+            sequence INTEGER NOT NULL UNIQUE
+        );
     ''')
+    columns = {row['name'] for row in db.execute('PRAGMA table_info(recorder)')}
+    if 'capacity' not in columns:
+        db.execute('ALTER TABLE recorder ADD COLUMN capacity INTEGER NOT NULL DEFAULT 0')
 
 
 def open_source(path):

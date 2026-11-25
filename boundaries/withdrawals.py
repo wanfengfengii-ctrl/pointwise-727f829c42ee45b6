@@ -9,4 +9,6 @@ def withdraw(db, ticket):
             raise StationError('already_signed', ticket)
         if current.state == 'withdrawn':
             return current
+        if current.full_scale:
+            raise StationError('full_scale_no_withdraw', ticket)
         return mark_withdrawn(db, ticket)
